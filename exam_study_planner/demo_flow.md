@@ -14,10 +14,15 @@ adk web
 ## 3) Paste this prompt in the UI
 ```text
 You are the coordinator. Make collaboration obvious.
+Log collaboration events using event_type values: handoff, start, end, export.
+Record each handoff and when each agent completes its work.
 Use the document intake agent to list and ingest all uploaded PDFs.
 Then ask the workload estimator agent to estimate time per topic for each course.
 Finally ask the schedule synthesis agent to build a day-by-day plan from today
 through my last midterm date and export Markdown.
+
+At the end, export the collaboration visualization.
+Record the export event.
 
 Midterm dates:
 - Course A: 2026-02-20

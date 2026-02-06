@@ -17,6 +17,7 @@ DEFAULT_MODEL = "gemini-2.0-flash"
 STATE_DOCS = "app.documents"
 STATE_ESTIMATES = "app.estimates"
 STATE_PLAN = "app.plan"
+STATE_EVENTS = "app.collab_events"
 
 load_dotenv()
 
@@ -453,3 +454,65 @@ def validate_plan(tool_context: Any) -> Dict[str, Any]:
 
     _state_set(state, STATE_PLAN, normalized)
     return {"status": "ok", "rows": len(normalized)}
+
+
+def record_event(
+    tool_context: Any,
+    actor: str,
+    event_type: str,
+    detail: str,
+) -> Dict[str, Any]:
+    """
+    Record a collaboration event for visualization.
+    """
+    state = _get_state(tool_context)
+    events = _state_get(state, STATE_EVENTS, [])
+    events.append(
+        {
+            "actor": str(actor).strip(),
+            "event_type": str(event_type).strip(),
+            "detail": str(detail).strip(),
+        }
+    )
+    _state_set(state, STATE_EVENTS, events)
+    return {"status": "ok", "count": len(events)}
+
+
+def export_collaboration(
+    tool_context: Any,
+    filename: Optional[str] = None,
+) -> Dict[str, Any]:
+    """
+    Export a simple collaboration visualization as Markdown with Mermaid.
+    """
+    state = _get_state(tool_context)
+    events = _state_get(state, STATE_EVENTS, [])
+    if not events:
+        return {"error": "No collaboration events found."}
+
+    _ensure_output_dir()
+    name = filename or "collaboration.md"
+    path = OUTPUT_DIR / name
+
+    def _node_id(index: int) -> str:
+        return f"E{index}"
+
+    def _safe(text: str) -> str:
+        return text.replace("[", "(").replace("]", ")").replace('"', "'")
+
+    lines = ["# Collaboration Trace", "", "```mermaid", "flowchart TD"]
+    for idx, event in enumerate(events, start=1):
+        label = _safe(f'{event["actor"]}: {event["event_type"]}')
+        lines.append(f'  {_node_id(idx)}["{label}"]')
+    for idx in range(1, len(events)):
+        a = _node_id(idx)
+        b = _node_id(idx + 1)
+        lines.append(f"  {a} --> {b}")
+    lines.extend(["```", "", "| # | Actor | Type | Detail |", "| --- | --- | --- | --- |"])
+    for idx, event in enumerate(events, start=1):
+        lines.append(
+            f'| {idx} | {event["actor"]} | {event["event_type"]} | {event["detail"]} |'
+        )
+
+    path.write_text("\n".join(lines), encoding="utf-8")
+    return {"status": "ok", "path": str(path)}

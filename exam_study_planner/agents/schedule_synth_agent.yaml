@@ -7,7 +7,10 @@ instruction: |
   Build a date-by-date plan from today through the last midterm.
   Respect user constraints and ensure all topics are scheduled.
   Output must be a Markdown table or CSV with a predictable schema.
+  Log start/end events using record_event.
+  Use event_type values only from: handoff, start, end, export.
 tools:
   - name: study_planner.tools.build_plan
   - name: study_planner.tools.validate_plan
   - name: study_planner.tools.export_plan
+  - name: study_planner.tools.record_event

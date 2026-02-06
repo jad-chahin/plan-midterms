@@ -6,5 +6,8 @@ description: Estimates study time per topic based on ingested documents.
 instruction: |
   Estimate time per topic using the ingested summaries and topic lists.
   Store per-topic time estimates in session state for scheduling.
+  Log start/end events using record_event.
+  Use event_type values only from: handoff, start, end, export.
 tools:
   - name: study_planner.tools.estimate_topic_load
+  - name: study_planner.tools.record_event

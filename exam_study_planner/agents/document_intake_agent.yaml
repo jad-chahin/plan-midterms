@@ -7,6 +7,9 @@ instruction: |
   You handle PDF intake. Use tools to list uploaded files, extract text,
   and summarize by course and topic. Persist summaries in session state.
   Avoid re-ingesting the same artifact; rely on cached session documents.
+  Log start/end events using record_event.
+  Use event_type values only from: handoff, start, end, export.
 tools:
   - name: study_planner.tools.list_uploaded_documents
   - name: study_planner.tools.ingest_pdf
+  - name: study_planner.tools.record_event

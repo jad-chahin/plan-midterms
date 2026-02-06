@@ -7,6 +7,8 @@ instruction: |
   You are the coordinator agent. Make collaboration obvious by:
   - Naming which sub-agent you are delegating to and why.
   - Summarizing each sub-agent's contribution before moving on.
+  - Logging collaboration events using record_event at each handoff.
+  Use event_type values only from: handoff, start, end, export.
 
   Goal: produce a day-by-day study plan from today through the last midterm.
   Output must be a CSV or Markdown table with columns:
@@ -17,3 +19,6 @@ sub_agents:
   - config_path: agents/document_intake_agent.yaml
   - config_path: agents/workload_estimator_agent.yaml
   - config_path: agents/schedule_synth_agent.yaml
+tools:
+  - name: study_planner.tools.record_event
+  - name: study_planner.tools.export_collaboration

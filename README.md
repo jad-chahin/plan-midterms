@@ -1,11 +1,8 @@
 # plan-my-midterms
 A multi-agent system that generates a day-by-day study plan based on the topics to be covered for a student's midterms.
 
-## Scaffold
-This repo now contains a minimal Google ADK scaffold that:
-- Defines three collaborating agents.
-- Uses Gemini models via `.env`.
-- Provides tool stubs for PDF ingestion, workload estimation, and plan export.
+## Overview
+Multi-agent study planner built with Google ADK and Gemini.
 
 ## Structure
 - `exam_study_planner/` ADK agent config (root + sub-agents)
@@ -36,6 +33,10 @@ adk run
 ## Demo Flow
 Follow the scripted prompt to make agent collaboration obvious:
 - `exam_study_planner/demo_flow.md`
+
+## Collaboration Visualization
+- Use `record_event` to log handoffs and key steps.
+- Use `export_collaboration` to generate `outputs/collaboration.md` with a Mermaid diagram.
 
 ## Session State
 - Uploaded PDFs are cached per session in memory.
