@@ -7,3 +7,5 @@ __pycache__/
 exam_study_planner/.env
 outputs/
 artifacts/
+exam_study_planner/outputs/
+exam_study_planner/agents/outputs/

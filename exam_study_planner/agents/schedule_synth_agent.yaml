@@ -1,16 +1,18 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/google/adk-python/refs/heads/main/src/google/adk/agents/config_schemas/AgentConfig.json
 agent_class: LlmAgent
 name: schedule_synth_agent
-model: gemini-2.0-flash
+model: gemini-flash-latest
 description: Produces the day-by-day plan and exports CSV or Markdown.
 instruction: |
   Build a date-by-date plan from today through the last midterm.
   Respect user constraints and ensure all topics are scheduled.
   Output must be a Markdown table or CSV with a predictable schema.
-  Log start/end events using record_event.
-  Use event_type values only from: handoff, start, end, export.
+  Do not call record_event. The coordinator logs collaboration events.
 tools:
-  - name: study_planner.tools.build_plan
-  - name: study_planner.tools.validate_plan
-  - name: study_planner.tools.export_plan
-  - name: study_planner.tools.record_event
+  - name: agents.study_planner.tools.build_plan
+  - name: agents.study_planner.tools.validate_plan
+  - name: agents.study_planner.tools.export_plan
+  - name: agents.study_planner.tools.get_today_date
+include_contents: none
+before_model_callbacks:
+  - name: agents.study_planner.callbacks.trim_request
