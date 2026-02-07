@@ -1,4 +1,5 @@
 .venv/
+venv/
 __pycache__/
 *.pyc
 .idea/
@@ -9,3 +10,4 @@ outputs/
 artifacts/
 exam_study_planner/outputs/
 exam_study_planner/agents/outputs/
+.adk/
