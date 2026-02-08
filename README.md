@@ -1,56 +1,131 @@
-# plan-my-midterms
-A multi-agent system that generates a day-by-day study plan based on the topics to be covered for a student's midterms.
+# Exam Study Planner
 
-## Overview
-Multi-agent study planner built with Google ADK and Gemini.
+Multi-agent ADK application that ingests large PDF course documents, estimates
+topic workload, builds a day-by-day study schedule, reviews feasibility, and
+exports final outputs to CSV + Markdown.
 
-## Structure
-- `exam_study_planner/` ADK agent config (root + sub-agents)
-- `study_planner/` Python tools package
-- `outputs/` Generated CSV/Markdown exports (ignored in git)
+## Stack
+- Google ADK (CLI + Web UI)
+- Gemini via `google.genai` (with local fallback if API key missing)
+- `pypdf` for PDF processing
+- Session persistence on local filesystem
+
+## Agent Team
+- `CoordinatorAgent` (root orchestrator)
+- `IngestionAgent` (PDF registration, mapping, chunked extraction)
+- `EstimationAgent` (topic workload estimates)
+- `PlanningReviewerAgent` (schedule generation + review + export)
+
+## Project Paths
+- Agents: `exam_study_planner/agent.py`
+- Tools: `exam_study_planner/tools.py`
+- Session artifacts: `artifacts/sessions/<session_id>/`
+- Input PDFs directory: `input_pdfs/`
+- Design docs: `docs/`
+- E2E tests: `tests/test_e2e_pipeline.py`
 
 ## Setup
-1. Create a virtual environment and install requirements:
-   ```powershell
-   python -m venv .venv
-   .\.venv\Scripts\Activate.ps1
-   pip install -r requirements.txt
-   ```
-2. Create `exam_study_planner/.env` using `.env.example` as a template.
-   - Add your `GOOGLE_API_KEY` for Gemini.
-
-## Run (ADK UI or CLI)
-From the agent directory:
-```powershell
-cd exam_study_planner
-adk web
+1. Create/activate a virtual environment.
+```bash
+python -m venv venv
+venv\Scripts\activate.ps1
 ```
-Or:
-```powershell
-adk run
+3. Install dependencies:
+```bash
+venv\Scripts\python.exe -m pip install -r requirements.txt
+```
+3. Create `.env` in repo root (or copy `.env.example`):
+```env
+GOOGLE_GENAI_USE_VERTEXAI=0
+GOOGLE_API_KEY=YOUR_GEMINI_API_KEY
+GOOGLE_GEMINI_MODEL=gemini-2.5-flash
 ```
 
-## Demo Flow
-Follow the scripted prompt to make agent collaboration obvious:
-- `exam_study_planner/demo_flow.md`
+Optional ingestion tuning:
+```env
+INGESTION_MAX_CHUNK_PAGES=20
+INGESTION_MAX_CHUNK_CHARS=18000
+INGESTION_MAX_GEMINI_RETRIES=5
+INGESTION_RETRY_BASE_SECONDS=1.2
+EXAM_STUDY_PLANNER_ARTIFACTS_DIR=artifacts
+```
 
-## Collaboration Visualization
-- Use `record_event` to log handoffs and key steps.
-- Use `export_collaboration` to generate `outputs/collaboration.md` with a Mermaid diagram.
+## Run
+Web UI:
+```bash
+venv\Scripts\adk.exe web .
+```
+Open `http://127.0.0.1:8000`
 
-## Session State
-- Uploaded PDFs are cached per session in memory.
-- Re-ingesting the same file returns the cached summary.
-- State is stored in `context.state` using `app.*` keys.
+CLI:
+```bash
+venv\Scripts\adk.exe run exam_study_planner
+```
 
-## Output Schema
-The plan is validated before export and must include:
-- `date`
-- `course`
-- `topic`
-- `estimated_time`
-- `notes`
+## Web UI Quickstart (Path-Based)
+This build is strictly file-path based. Do not upload files in chat.
 
-## Gemini Usage
-- PDF summarization and topic extraction use Gemini when `GOOGLE_API_KEY` is set.
-- Topic time estimation uses Gemini and falls back to a heuristic if unavailable.
+### 1. Open the app
+1. Run `venv\Scripts\adk.exe web .`
+2. Open `http://127.0.0.1:8000`
+3. Select the `exam_study_planner` app/agent in the UI.
+
+### 2. Put your PDFs in the repo input folder
+1. Copy your PDFs into:
+   `C:\path-to\plan-midterms\input_pdfs\`
+2. Example filenames:
+   - `Biostatistics.pdf`
+   - `Business Dynamics.pdf`
+   - `Quantum Mechanics.pdf`
+
+### 3. Paste one message in chat
+Paste this and change course names/dates:
+
+```text
+Call run_simple_study_planner with:
+{
+  "session_id": "my_midterms_01",
+  "course_names": ["Business Dynamics", "Biostatistics", "Quantum Mechanics"],
+  "midterm_dates": ["2026-02-28", "2026-03-10", "2026-03-20"],
+  "daily_study_cap_minutes": 300,
+  "file_paths": [
+    "C:/path-to/plan-midterms/input_pdfs/Business Dynamics.pdf",
+    "C:/path-to/plan-midterms/input_pdfs/Biostatistics.pdf",
+    "C:/path-to/plan-midterms/input_pdfs/Quantum Mechanics.pdf"
+  ]
+}
+```
+
+### 4. Confirm output paths
+After it finishes, open:
+- `artifacts/sessions/my_midterms_01/outputs/study_plan.csv`
+- `artifacts/sessions/my_midterms_01/outputs/study_plan.md`
+
+If you used a different `session_id`, replace `my_midterms_01` with that value.
+
+## Key Tools
+- `run_simple_study_planner`:
+  one-shot full pipeline (best starting point), using `file_paths`.
+- `register_session_courses`:
+  saves course names and midterm dates.
+- `register_session_files`:
+  registers PDFs from local filesystem paths.
+- `map_session_files_to_courses`:
+  maps each registered file to one or more courses.
+- `ingest_session_documents`:
+  chunked PDF parsing + topic extraction.
+- `estimate_session_workload`:
+  generates topic-level minute estimates.
+- `build_session_study_plan`:
+  generates day-by-day schedule rows.
+- `review_session_plan`:
+  validates feasibility, returns `approved_plan`, `capacity_limited_plan`, or `needs_revision`.
+- `export_session_study_plan`:
+  writes final CSV + Markdown.
+- `read_session_output_artifacts`:
+  returns exact output file paths.
+- `read_session_collaboration_trace`:
+  shows cross-agent activity/events for debugging.
+
+## Runbook
+See `docs/15-final-polish-and-runbook.md` for a full operator runbook.
