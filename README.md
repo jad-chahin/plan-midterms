@@ -30,7 +30,7 @@ exports final outputs to CSV + Markdown.
 python -m venv venv
 venv\Scripts\activate.ps1
 ```
-3. Install dependencies:
+2. Install dependencies:
 ```bash
 venv\Scripts\python.exe -m pip install -r requirements.txt
 ```
